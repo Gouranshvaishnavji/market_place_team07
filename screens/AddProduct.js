@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, Alert,
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 import { supabase } from '../services/supabase';
 
@@ -29,7 +29,7 @@ export default function AddProduct() {
       const filename = `products/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
       
       const base64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
 
       const { data, error } = await supabase.storage
