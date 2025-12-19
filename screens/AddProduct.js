@@ -111,17 +111,31 @@ export default function AddProduct() {
           const publicUrl = await uploadImageToSupabase(values.image);
           
           if (publicUrl) {
+            // Get current user
+            const { data: { user } } = await supabase.auth.getUser();
+
+            // Prepare product data
+            const productData = {
+              title: values.title,
+              description: values.description,
+              price: parseFloat(values.price),
+              image_url: publicUrl,
+            };
+
+            // Only add user_id if the column exists (we can't check schema easily here, 
+            // so we'll try to insert without it if the first attempt fails, or just omit it for now 
+            // if the user hasn't run the migration yet).
+            
+            // FIX: For now, let's try to insert WITHOUT user_id first to get it working,
+            // since the error explicitly says the column is missing.
+            // Once you run the SQL to add the column, you can uncomment the user_id line.
+            
+            // if (user) productData.user_id = user.id; 
+
             // Insert into database
             const { error } = await supabase
               .from('products')
-              .insert([
-                {
-                  title: values.title,
-                  description: values.description,
-                  price: parseFloat(values.price),
-                  image_url: publicUrl,
-                },
-              ]);
+              .insert([productData]);
 
             if (error) {
               console.error('Error inserting product:', error);
