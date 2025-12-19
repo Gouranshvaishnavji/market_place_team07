@@ -1,11 +1,31 @@
+import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Platform, StatusBar as RNStatusBar, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Platform, StatusBar as RNStatusBar, ScrollView, TouchableOpacity } from 'react-native';
 
 import ProductCard from './components/ProductCard';
 // 1. UPDATED IMPORT: We are now importing CategoryPill
 import CategoryPill from './components/CategoryPill';
+import AddProduct from './screens/AddProduct';
 
 export default function App() {
+  const [currentScreen, setCurrentScreen] = useState('home');
+
+  if (currentScreen === 'add') {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between' }]}>
+          <TouchableOpacity onPress={() => setCurrentScreen('home')}>
+            <Text style={styles.headerButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerText}>Add Product</Text>
+          <View style={{ width: 50 }} />
+        </View>
+        <AddProduct />
+        <StatusBar style="auto" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -37,6 +57,10 @@ export default function App() {
 
       </ScrollView>
 
+      <TouchableOpacity style={styles.fab} onPress={() => setCurrentScreen('add')}>
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
+
       <StatusBar style="auto" />
     </View>
   );
@@ -58,6 +82,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
+  headerButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   scrollContent: {
     paddingBottom: 20,
   },
@@ -73,5 +102,26 @@ const styles = StyleSheet.create({
   },
   productsList: {
     paddingBottom: 20,
-  }
+  },
+  fab: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    right: 20,
+    bottom: 30,
+    backgroundColor: '#3498db',
+    borderRadius: 30,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  fabText: {
+    fontSize: 30,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
 });
