@@ -1,24 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, Platform, StatusBar as RNStatusBar, Alert } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Platform, StatusBar as RNStatusBar, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { supabase } from '../services/supabase';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProfileScreen({ onBack }) {
-  const [userEmail, setUserEmail] = useState('Loading...');
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email);
-      }
-    };
-    getUser();
-  }, []);
+  const { user, signOut } = useAuth();
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      await signOut();
+    } catch (error) {
       Alert.alert('Error', error.message);
     }
   };
@@ -36,10 +27,12 @@ export default function ProfileScreen({ onBack }) {
       <View style={styles.content}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{userEmail.charAt(0).toUpperCase()}</Text>
+            <Text style={styles.avatarText}>
+              {user?.email ? user.email.charAt(0).toUpperCase() : '?'}
+            </Text>
           </View>
           <Text style={styles.name}>User</Text>
-          <Text style={styles.email}>{userEmail}</Text>
+          <Text style={styles.email}>{user?.email || 'No email'}</Text>
         </View>
 
         <View style={styles.menu}>

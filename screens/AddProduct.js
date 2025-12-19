@@ -3,9 +3,10 @@ import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, Alert,
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
 import { supabase } from '../services/supabase';
+import { useAuth } from '../context/AuthContext';
 
 const ProductSchema = Yup.object().shape({
   title: Yup.string().required('Product Title is required'),
@@ -18,6 +19,7 @@ const ProductSchema = Yup.object().shape({
 });
 
 export default function AddProduct() {
+  const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
 
   const uploadImageToSupabase = async (uri) => {
@@ -94,9 +96,6 @@ export default function AddProduct() {
           const publicUrl = await uploadImageToSupabase(values.image);
           
           if (publicUrl) {
-            // Get current user
-            const { data: { user } } = await supabase.auth.getUser();
-
             // Prepare product data
             const productData = {
               title: values.title,
