@@ -13,6 +13,8 @@ const ProductSchema = Yup.object().shape({
     .typeError('Price must be a number')
     .positive('Price must be greater than 0')
     .required('Price is required'),
+  image: Yup.string()
+    .required('Product Image is required'),
 });
 
 export default function AddProduct() {
@@ -108,16 +110,22 @@ export default function AddProduct() {
             {/* Image Upload Placeholder */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Product Image</Text>
-              <TouchableOpacity onPress={() => pickImage(setFieldValue)}>
+              <TouchableOpacity onPress={() => { pickImage(setFieldValue); handleBlur('image'); }}>
                 {values.image ? (
                   <Image source={{ uri: values.image }} style={styles.imagePreview} />
                 ) : (
-                  <View style={styles.imagePlaceholder}>
+                  <View style={[
+                    styles.imagePlaceholder,
+                    touched.image && errors.image ? styles.inputError : null
+                  ]}>
                     <Text style={styles.imagePlaceholderText}>+ Upload Image</Text>
                     <Text style={styles.imagePlaceholderSubText}>(Tap to select)</Text>
                   </View>
                 )}
               </TouchableOpacity>
+              {touched.image && errors.image && (
+                <Text style={styles.errorText}>{errors.image}</Text>
+              )}
             </View>
 
             {/* Submit Button */}
