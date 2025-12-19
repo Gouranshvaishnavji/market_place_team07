@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import PropTypes from 'prop-types';
 
-// Changed name to "CategoryPill"
 export default function CategoryPill({ title }) {
   return (
     <TouchableOpacity style={styles.pill}>
@@ -10,12 +10,16 @@ export default function CategoryPill({ title }) {
   );
 }
 
+CategoryPill.propTypes = {
+  title: PropTypes.string.isRequired,
+};
+
 const styles = StyleSheet.create({
   pill: {
     backgroundColor: '#fff',
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 20,      // This is what makes it look like a "Pill"
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#ddd',
     marginRight: 10,
