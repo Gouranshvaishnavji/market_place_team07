@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import HomeScreen from '../screens/HomeScreen';
 import AddProduct from '../screens/AddProduct';
-import ProductDetails from '../screens/ProductDetails';
+import ProductDetailScreen from '../screens/Home/ProductDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 // Bottom Tab Component
@@ -75,7 +75,7 @@ export default function AppNavigator() {
         );
       case 'details':
         return (
-          <ProductDetails 
+          <ProductDetailScreen 
             product={selectedProduct} 
             onBack={() => navigateTo('home')} 
           />
