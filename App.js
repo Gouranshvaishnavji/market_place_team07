@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Platform, StatusBar as RNStatusBar, ScrollView, TouchableOpacity } from 'react-native';
 
@@ -6,9 +6,15 @@ import ProductCard from './components/ProductCard';
 // 1. UPDATED IMPORT: We are now importing CategoryPill
 import CategoryPill from './components/CategoryPill';
 import AddProduct from './screens/AddProduct';
+import { fetchProducts } from './services/productService';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
+
+  useEffect(() => {
+    // Fetch products when the app loads
+    fetchProducts();
+  }, []);
 
   if (currentScreen === 'add') {
     return (
