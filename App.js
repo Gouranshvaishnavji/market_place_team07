@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Platform, StatusBar as RNStatusBar, SafeAreaView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { supabase } from './services/supabase';
 
 import HomeScreen from './screens/HomeScreen';
 import AddProduct from './screens/AddProduct';
 import ProductDetails from './screens/ProductDetails';
 import ProfileScreen from './screens/ProfileScreen';
+import LoginScreen from './screens/LoginScreen';
+import RegisterScreen from './screens/RegisterScreen';
 
 // Bottom Tab Component
 const BottomTabs = ({ current, navigate }) => (
@@ -41,6 +44,18 @@ const BottomTabs = ({ current, navigate }) => (
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [session, setSession] = useState(null);
+  const [authScreen, setAuthScreen] = useState('login'); // 'login' or 'register'
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
 
   const navigateTo = (screen) => {
     setCurrentScreen(screen);
@@ -50,6 +65,24 @@ export default function App() {
     setSelectedProduct(product);
     setCurrentScreen('details');
   };
+
+  if (!session) {
+    return (
+      <View style={styles.container}>
+        {authScreen === 'login' ? (
+          <LoginScreen 
+            onNavigate={() => setAuthScreen('register')} 
+            onLoginSuccess={() => {}} // Handled by onAuthStateChange
+          />
+        ) : (
+          <RegisterScreen 
+            onNavigate={() => setAuthScreen('login')} 
+          />
+        )}
+        <StatusBar style="auto" />
+      </View>
+    );
+  }
 
   const renderScreen = () => {
     switch (currentScreen) {
