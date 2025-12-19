@@ -3,6 +3,8 @@ import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, Alert,
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
 import { supabase } from '../services/supabase';
 
 const ProductSchema = Yup.object().shape({
@@ -26,12 +28,13 @@ export default function AddProduct() {
       setUploading(true);
       const filename = `products/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
       
-      const response = await fetch(uri);
-      const arrayBuffer = await response.arrayBuffer();
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
 
       const { data, error } = await supabase.storage
         .from('product-images')
-        .upload(filename, arrayBuffer, {
+        .upload(filename, decode(base64), {
           contentType: 'image/jpeg',
         });
 
