@@ -1,17 +1,23 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 
 // This is our "ProductCard" Lego block
-export default function ProductCard() {
+export default function ProductCard({ product }) {
+  if (!product) return null;
+
   return (
     <View style={styles.card}>
-      <View style={styles.imagePlaceholder}>
-        <Text style={styles.imageText}>Image Here</Text>
-      </View>
+      {product.image_url ? (
+        <Image source={{ uri: product.image_url }} style={styles.image} resizeMode="cover" />
+      ) : (
+        <View style={styles.imagePlaceholder}>
+          <Text style={styles.imageText}>No Image</Text>
+        </View>
+      )}
 
       <View style={styles.details}>
-        <Text style={styles.title}>Red Jacket</Text>
-        <Text style={styles.price}>$99.00</Text>
+        <Text style={styles.title}>{product.title}</Text>
+        <Text style={styles.price}>${product.price}</Text>
         
         <TouchableOpacity style={styles.button}>
           <Text style={styles.buttonText}>Buy Now</Text>
@@ -32,6 +38,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,           // Shadow for Android
+  },
+  image: {
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
   },
   imagePlaceholder: {
     width: '100%',          
