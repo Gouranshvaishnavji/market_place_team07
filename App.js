@@ -1,19 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Platform, StatusBar as RNStatusBar, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Platform, StatusBar as RNStatusBar, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 
 import ProductCard from './components/ProductCard';
 // 1. UPDATED IMPORT: We are now importing CategoryPill
 import CategoryPill from './components/CategoryPill';
 import AddProduct from './screens/AddProduct';
 import { fetchProducts } from './services/productService';
+import { supabase } from './services/supabase';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
+  const [products, setProducts] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadProducts = async () => {
+    const data = await fetchProducts();
+    setProducts(data);
+  };
 
   useEffect(() => {
-    // Fetch products when the app loads
-    fetchProducts();
+    loadProducts();
+
+    // Real-time subscription
+    const subscription = supabase
+      .channel('public:products')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'products' },
+        (payload) => {
+          console.log('New product received!', payload);
+          setProducts((prev) => [payload.new, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadProducts();
+    setRefreshing(false);
   }, []);
 
   if (currentScreen === 'add') {
@@ -38,7 +68,12 @@ export default function App() {
         <Text style={styles.headerText}>Community Market</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         
         {/* CATEGORIES SECTION */}
         <View style={styles.categoryContainer}>
@@ -56,9 +91,13 @@ export default function App() {
         {/* PRODUCTS LIST */}
         <Text style={styles.sectionTitle}>Recent Items</Text>
         <View style={styles.productsList}>
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
+          {products.length === 0 ? (
+            <Text style={styles.emptyText}>No products found. Check Supabase RLS policies.</Text>
+          ) : (
+            products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          )}
         </View>
 
       </ScrollView>
@@ -108,6 +147,13 @@ const styles = StyleSheet.create({
   },
   productsList: {
     paddingBottom: 20,
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+    color: '#666',
+    fontStyle: 'italic',
   },
   fab: {
     position: 'absolute',

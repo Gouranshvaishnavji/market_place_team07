@@ -111,9 +111,26 @@ export default function AddProduct() {
           const publicUrl = await uploadImageToSupabase(values.image);
           
           if (publicUrl) {
-            console.log('Form Values:', { ...values, imageUrl: publicUrl });
-            Alert.alert('Success', 'Product Submitted Successfully');
-            resetForm();
+            // Insert into database
+            const { error } = await supabase
+              .from('products')
+              .insert([
+                {
+                  title: values.title,
+                  description: values.description,
+                  price: parseFloat(values.price),
+                  image_url: publicUrl,
+                },
+              ]);
+
+            if (error) {
+              console.error('Error inserting product:', error);
+              Alert.alert('Error', 'Failed to save product details.');
+            } else {
+              console.log('Product saved successfully');
+              Alert.alert('Success', 'Product Submitted Successfully');
+              resetForm();
+            }
           }
         }}
       >
