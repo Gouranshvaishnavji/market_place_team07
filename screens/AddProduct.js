@@ -1,8 +1,9 @@
-import React from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, Alert, Image, ActivityIndicator } from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import * as ImagePicker from 'expo-image-picker';
+import { supabase } from '../services/supabase';
 
 const ProductSchema = Yup.object().shape({
   title: Yup.string()
@@ -18,18 +19,80 @@ const ProductSchema = Yup.object().shape({
 });
 
 export default function AddProduct() {
-  const pickImage = async (setFieldValue) => {
-    // No permissions request is necessary for launching the image library
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+  const [uploading, setUploading] = useState(false);
 
-    if (!result.canceled) {
-      setFieldValue('image', result.assets[0].uri);
+  const uploadImageToSupabase = async (uri) => {
+    try {
+      setUploading(true);
+      const filename = `products/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+      
+      const response = await fetch(uri);
+      const arrayBuffer = await response.arrayBuffer();
+
+      const { data, error } = await supabase.storage
+        .from('product-images')
+        .upload(filename, arrayBuffer, {
+          contentType: 'image/jpeg',
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filename);
+
+      return publicUrlData.publicUrl;
+    } catch (error) {
+      console.error('Upload Error:', error);
+      Alert.alert('Upload Failed', error.message);
+      return null;
+    } finally {
+      setUploading(false);
     }
+  };
+
+  const pickImage = async (setFieldValue) => {
+    Alert.alert(
+      "Select Image",
+      "Choose an option",
+      [
+        {
+          text: "Camera",
+          onPress: async () => {
+            const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+            if (permissionResult.granted === false) {
+              Alert.alert("Permission to access camera is required!");
+              return;
+            }
+            const result = await ImagePicker.launchCameraAsync({
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 0.7,
+            });
+            if (!result.canceled) {
+              setFieldValue('image', result.assets[0].uri);
+            }
+          }
+        },
+        {
+          text: "Gallery",
+          onPress: async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ['images'],
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 0.7,
+            });
+            if (!result.canceled) {
+              setFieldValue('image', result.assets[0].uri);
+            }
+          }
+        },
+        { text: "Cancel", style: "cancel" }
+      ]
+    );
   };
 
   return (
@@ -39,10 +102,16 @@ export default function AddProduct() {
       <Formik
         initialValues={{ title: '', description: '', price: '', image: null }}
         validationSchema={ProductSchema}
-        onSubmit={(values, { resetForm }) => {
-          console.log('Form Values:', values);
-          Alert.alert('Success', 'Product Submitted Successfully');
-          resetForm();
+        onSubmit={async (values, { resetForm }) => {
+          if (!values.image) return;
+          
+          const publicUrl = await uploadImageToSupabase(values.image);
+          
+          if (publicUrl) {
+            console.log('Form Values:', { ...values, imageUrl: publicUrl });
+            Alert.alert('Success', 'Product Submitted Successfully');
+            resetForm();
+          }
         }}
       >
         {({ handleChange, handleBlur, handleSubmit, setFieldValue, values, errors, touched, isValid, dirty }) => (
