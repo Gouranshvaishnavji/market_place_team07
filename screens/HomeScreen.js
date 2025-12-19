@@ -46,9 +46,6 @@ export default function HomeScreen({ onNavigate, onProductSelect }) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Community Market</Text>
-        <TouchableOpacity onPress={() => onNavigate('profile')} style={styles.profileButton}>
-           <Text style={styles.profileButtonText}>👤</Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -90,10 +87,6 @@ export default function HomeScreen({ onNavigate, onProductSelect }) {
 
       </ScrollView>
 
-      <TouchableOpacity style={styles.fab} onPress={() => onNavigate('add')}>
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
-
       <StatusBar style="auto" />
     </View>
   );
@@ -103,7 +96,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 50,
   },
   header: {
     padding: 20,
